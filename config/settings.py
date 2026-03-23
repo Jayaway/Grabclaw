@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     # 第三方应用
     'rest_framework',
     'corsheaders',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # 静态文件服务
     # 本地应用
     'courses',
 ]
