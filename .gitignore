@@ -4,21 +4,32 @@ __pycache__/
 *$py.class
 *.so
 .Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
 venv/
-ENV/
 env/
-.venv/
+ENV/
+.venv
 
 # Django
-*.log
-local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.log
+staticfiles/
 media/
 
+# Environment variables
+.env
+.env.local
+*.secret
+.env.*
+
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
@@ -27,5 +38,12 @@ media/
 .DS_Store
 Thumbs.db
 
-# Git
-.git/
+# Logs
+logs/
+*.log
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.pytest_cache/

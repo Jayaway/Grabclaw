@@ -1,307 +1,165 @@
-# 传统课程死亡倒计时 - 后端部署指南
+# Course Death Backend - Django API
+
+基于 Django 4.2 和 REST Framework 的课程停开信息管理系统后端 API，已适配微信云托管。
 
 ## 项目结构
 
 ```
 course_death_backend/
 ├── config/                 # Django 项目配置
-│   ├── settings.py        # 主配置文件
-│   ├── urls.py            # 主路由
-│   └── wsgi.py
-├── courses/               # 核心应用
+│   ├── settings.py        # 主配置文件（支持环境变量）
+│   ├── urls.py            # 主路由配置
+│   └── wsgi.py            # WSGI 应用入口
+├── courses/               # 课程管理应用
 │   ├── models.py          # 数据模型
-│   ├── serializers.py     # 序列化器
-│   ├── views.py           # 视图函数
-│   ├── urls.py            # 应用路由
-│   └── admin.py           # 后台管理
-├── venv/                  # 虚拟环境
-├── logs/                  # 日志目录
-├── db.sqlite3             # SQLite 数据库
-├── manage.py              # Django 管理脚本
-├── requirements.txt       # 依赖列表
-├── init_data.py           # 初始化数据脚本
-├── API.md                 # API 接口文档
-└── README.md              # 本文件
+│   ├── serializers.py     # REST 序列化器
+│   ├── views.py           # API 视图
+│   └── urls.py            # 应用路由
+├── Dockerfile             # Docker 容器配置
+├── container.config.json  # 微信云托管配置
+├── requirements.txt       # Python 依赖
+└── manage.py             # Django 管理脚本
 ```
 
-## 本地开发环境搭建
+## API 接口
 
-### 1. 环境要求
+### 基础路径
+`/api/v1/`
 
-- Python 3.9+
-- pip
-- virtualenv（可选）
+### 可用接口
+- `GET /api/v1/schools/` - 获取学校列表
+- `GET /api/v1/majors/` - 获取专业列表（支持按学校筛选）
+- `GET /api/v1/courses/` - 获取课程列表（支持搜索和筛选）
+- `GET /api/v1/courses/statistics/` - 课程统计
+- `POST /api/v1/clues/` - 提交课程停开线索
+- `GET /api/v1/clues/` - 获取线索列表
 
-### 2. 安装步骤
+## 本地开发
 
+### 1. 安装依赖
 ```bash
-# 进入项目目录
-cd /Users/vv/代码/微信小程序/course_death_backend
-
-# 激活虚拟环境
-source venv/bin/activate
-
-# 安装依赖（已完成）
+cd course_death_backend
 pip install -r requirements.txt
-
-# 数据库迁移（已完成）
-python manage.py makemigrations
-python manage.py migrate
-
-# 初始化数据（已完成）
-python manage.py shell < init_data.py
 ```
 
-### 3. 创建管理员账号
+### 2. 数据库迁移
+```bash
+python manage.py migrate
+```
 
+### 3. 创建超级用户（可选）
 ```bash
 python manage.py createsuperuser
-# 按提示输入用户名、邮箱、密码
 ```
 
 ### 4. 启动开发服务器
-
 ```bash
 python manage.py runserver
-# 或指定端口
-python manage.py runserver 0.0.0.0:8000
 ```
 
-访问：
-- 前端 API：http://127.0.0.1:8000/api/v1/
-- 后台管理：http://127.0.0.1:8000/admin/
+### 5. 测试 API
+访问 `http://127.0.0.1:8000/api/v1/` 测试 API
 
-## 生产环境部署
+## 微信云托管部署
 
-### 方案一：使用 Gunicorn + Nginx
+### 方式一：使用官方模板部署
 
-#### 1. 安装 Gunicorn
+1. 在微信云托管控制台选择"从官方模板创建"
+2. 选择"django"模板
+3. 替换官方模板代码为本项目代码
+4. 配置环境变量（见下方）
+5. 点击部署
 
+### 方式二：从代码仓库部署（推荐）
+
+1. **推送代码到 GitHub**
+   ```bash
+   git init
+   git add .
+   git commit -m "Init Django backend for WeChat cloud hosting"
+   git branch -M main
+   git remote add origin YOUR_GITHUB_REPO_URL
+   git push -u origin main
+   ```
+
+2. **创建微信云托管服务**
+   - 登录 [微信云托管控制台](https://cloud.weixin.qq.com/cloudrun)
+   - 选择"新建服务" → "从代码仓库"
+   - 授权 GitHub 账号并选择仓库
+   - 选择 `main` 分支
+
+3. **配置环境变量**
+   在微信云托管控制台配置以下环境变量：
+   
+   | 变量名 | 说明 | 必填 | 示例值 |
+   |--------|------|------|--------|
+   | `DJANGO_DEBUG` | 调试模式 | 否 | `False` |
+   | `DJANGO_SECRET_KEY` | Django 密钥 | 是 | 随机生成的长字符串 |
+   | `ALLOWED_HOSTS` | 允许的主机 | 否 | `.sh.run.tcloudbase.com` |
+   | `MYSQL_ADDRESS` | 数据库地址 | 是 | `xxx.mysql.tencentcdb.com` |
+   | `MYSQL_USERNAME` | 数据库用户名 | 是 | `root` |
+   | `MYSQL_PASSWORD` | 数据库密码 | 是 | `your-password` |
+   | `MYSQL_DB_NAME` | 数据库名称 | 否 | `course_death` |
+
+4. **数据库初始化**
+   部署完成后，在云托管控制台的"运行日志"中执行：
+   ```bash
+   python manage.py migrate
+   ```
+
+5. **访问服务**
+   部署成功后，通过"公网域名访问"获取服务地址。
+
+## 环境变量说明
+
+### 本地开发（可选）
+- 不设置任何数据库环境变量时，自动使用 SQLite（`db.sqlite3`）
+- 设置 `DJANGO_DEBUG=True` 启用调试模式
+
+### 云托管生产环境
+- 必须设置 `MYSQL_ADDRESS`、`MYSQL_USERNAME`、`MYSQL_PASSWORD`
+- 设置 `DJANGO_DEBUG=False` 关闭调试模式
+- 设置 `DJANGO_SECRET_KEY` 为强随机字符串
+
+## 数据库迁移
+
+### 本地迁移
 ```bash
-pip install gunicorn
-```
-
-#### 2. 启动 Gunicorn
-
-```bash
-gunicorn config.wsgi:application \
-  --bind 0.0.0.0:8000 \
-  --workers 4 \
-  --timeout 120 \
-  --access-logfile logs/access.log \
-  --error-logfile logs/error.log \
-  --daemon
-```
-
-#### 3. Nginx 配置示例
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    location /admin/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-    }
-
-    location /static/ {
-        alias /path/to/course_death_backend/static/;
-    }
-}
-```
-
-### 方案二：Docker 部署（推荐）
-
-#### 1. 创建 Dockerfile
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-RUN python manage.py collectstatic --noinput
-RUN python manage.py migrate
-
-EXPOSE 8000
-
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
-```
-
-#### 2. 构建并运行
-
-```bash
-docker build -t course-death-backend .
-docker run -d -p 8000:8000 --name course-backend course-death-backend
-```
-
-## 生产环境配置调整
-
-### 1. 修改 settings.py
-
-```python
-# 关闭调试模式
-DEBUG = False
-
-# 设置允许的主机
-ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com']
-
-# 配置 CORS（生产环境建议使用白名单）
-CORS_ALLOWED_ORIGINS = [
-    "https://your-miniprogram-domain.com",
-]
-
-# 使用环境变量管理敏感信息
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-secret-key')
-
-# 配置 MySQL（可选）
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'course_death',
-        'USER': 'your_user',
-        'PASSWORD': 'your_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
-```
-
-### 2. 收集静态文件
-
-```bash
-python manage.py collectstatic
-```
-
-## 数据库迁移到 MySQL
-
-### 1. 安装 MySQL 客户端
-
-```bash
-# macOS
-brew install mysql
-
-# Ubuntu
-sudo apt-get install libmysqlclient-dev
-```
-
-### 2. 安装 Python MySQL 驱动
-
-```bash
-pip install mysqlclient
-```
-
-### 3. 创建数据库
-
-```sql
-CREATE DATABASE course_death CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'course_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON course_death.* TO 'course_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-### 4. 更新 settings.py 并迁移
-
-```bash
+python manage.py makemigrations
 python manage.py migrate
-python manage.py shell < init_data.py
 ```
+
+### 云托管迁移
+方式一：通过控制台"运行日志"执行
+方式二：在代码中添加迁移脚本，重启服务时自动执行
+
+## 静态文件
+
+生产环境使用 WhiteNoise 中间件提供静态文件服务，部署时会自动收集到 `staticfiles/` 目录。
 
 ## 常见问题
 
-### 1. CORS 跨域问题
+### 1. 数据库连接失败
+检查环境变量 `MYSQL_ADDRESS`、`MYSQL_USERNAME`、`MYSQL_PASSWORD` 是否正确配置。
 
-确保 `django-cors-headers` 已安装并正确配置：
-- 中间件顺序正确
-- `CORS_ALLOW_ALL_ORIGINS = True`（开发环境）
-- 生产环境使用 `CORS_ALLOWED_ORIGINS` 白名单
+### 2. API 返回 404
+检查 `ALLOWED_HOSTS` 环境变量是否包含服务域名。
 
-### 2. 静态文件 404
+### 3. 部署后 API 无响应
+查看"运行日志"，检查是否有错误信息，常见原因：
+- 端口未正确监听（默认 8080）
+- 环境变量未配置
+- 数据库迁移未执行
 
-```bash
-python manage.py collectstatic
-```
+## 技术栈
 
-### 3. 数据库连接失败
+- **Web 框架**: Django 4.2
+- **API 框架**: Django REST Framework 3.14
+- **数据库**: SQLite（开发）/ MySQL（生产）
+- **WSGI 服务器**: Gunicorn
+- **静态文件**: WhiteNoise
+- **跨域支持**: django-cors-headers
 
-检查：
-- 数据库服务是否启动
-- 用户名密码是否正确
-- 防火墙设置
+## 许可证
 
-### 4. 日志查看
-
-```bash
-# 开发服务器日志
-tail -f logs/django.log
-
-# Gunicorn 日志
-tail -f logs/access.log
-tail -f logs/error.log
-```
-
-## 性能优化建议
-
-1. **数据库索引**：为常用查询字段添加索引
-2. **缓存**：使用 Redis 缓存热点数据
-3. **CDN**：静态文件使用 CDN 加速
-4. **数据库连接池**：配置 `CONN_MAX_AGE`
-5. **Gzip 压缩**：Nginx 开启 gzip
-
-## 安全建议
-
-1. 定期更新依赖包
-2. 使用 HTTPS
-3. 配置防火墙规则
-4. 定期备份数据库
-5. 限制 API 请求频率（可使用 django-ratelimit）
-
-## 监控与维护
-
-### 日志轮转
-
-```bash
-# 使用 logrotate
-sudo nano /etc/logrotate.d/course-death
-
-/path/to/logs/*.log {
-    daily
-    rotate 7
-    compress
-    delaycompress
-    notifempty
-    create 0640 www-data www-data
-}
-```
-
-### 定期备份
-
-```bash
-# SQLite 备份
-cp db.sqlite3 backups/db_$(date +%Y%m%d).sqlite3
-
-# MySQL 备份
-mysqldump -u course_user -p course_death > backups/db_$(date +%Y%m%d).sql
-```
-
-## 联系与支持
-
-- API 文档：查看 `API.md`
-- 问题反馈：提交 Issue
-- 技术栈：Django 4.2 + DRF + SQLite/MySQL
-
----
-
-**祝部署顺利！** 🚀
+MIT License

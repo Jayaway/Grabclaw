@@ -1,6 +1,20 @@
-Django==4.2.11
-djangorestframework==3.14.0
-django-cors-headers==4.3.1
-python-decouple==3.8
-gunicorn==21.2.0
-whitenoise==6.6.0
+# Django core
+Django>=4.2,<5.0
+
+# REST framework
+djangorestframework>=3.14,<4.0
+
+# CORS support
+django-cors-headers>=4.3,<5.0
+
+# Static files
+whitenoise>=6.6,<7.0
+
+# WSGI server
+gunicorn>=21.2,<22.0
+
+# MySQL client (for production)
+mysqlclient>=2.0,<3.0
+
+# Configuration management
+python-decouple>=3.8,<4.0

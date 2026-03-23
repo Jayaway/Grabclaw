@@ -1,0 +1,41 @@
+{
+  "env": [
+    {
+      "name": "DJANGO_DEBUG",
+      "value": "False"
+    },
+    {
+      "name": "DJANGO_SECRET_KEY",
+      "value": "your-production-secret-key-change-this-in-production"
+    },
+    {
+      "name": "ALLOWED_HOSTS",
+      "value": ".sh.run.tcloudbase.com,.tcloudbase.com"
+    },
+    {
+      "name": "MYSQL_ADDRESS",
+      "description": "数据库地址",
+      "required": true
+    },
+    {
+      "name": "MYSQL_USERNAME",
+      "value": "root"
+    },
+    {
+      "name": "MYSQL_PASSWORD",
+      "description": "数据库密码",
+      "required": true
+    },
+    {
+      "name": "MYSQL_DB_NAME",
+      "value": "course_death"
+    }
+  ],
+  "services": [
+    {
+      "name": "web",
+      "containerPort": 8080,
+      "env": []
+    }
+  ]
+}

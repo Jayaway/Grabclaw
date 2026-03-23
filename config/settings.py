@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-*ti3y-27x#*h^g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -82,12 +82,37 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases/
+
+# 支持本地 SQLite 和云托管 MySQL
+MYSQL_ADDRESS = os.environ.get('MYSQL_ADDRESS')
+MYSQL_USERNAME = os.environ.get('MYSQL_USERNAME', 'root')
+MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+MYSQL_DB_NAME = os.environ.get('MYSQL_DB_NAME', 'course_death')
+
+if MYSQL_ADDRESS:
+    # 云托管环境使用 MySQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'HOST': MYSQL_ADDRESS,
+            'USER': MYSQL_USERNAME,
+            'PASSWORD': MYSQL_PASSWORD,
+            'NAME': MYSQL_DB_NAME,
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+            },
+        }
     }
-}
+else:
+    # 本地开发环境使用 SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
