@@ -20,10 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*ti3y-27x#*h^gvgcolwi5qhrbbdgy+5!=qa+^kg6@v5k-ba8('
+import os
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-*ti3y-27x#*h^gvgcolwi5qhrbbdgy+5!=qa+^kg6@v5k-ba8(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -40,12 +41,14 @@ INSTALLED_APPS = [
     # 第三方应用
     'rest_framework',
     'corsheaders',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 静态文件服务
     # 本地应用
     'courses',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # 静态文件中间件，必须在SecurityMiddleware之后
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',  # CORS中间件，必须在CommonMiddleware之前
     'django.middleware.common.CommonMiddleware',
@@ -122,6 +125,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 静态文件收集目录
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
