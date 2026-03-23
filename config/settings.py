@@ -164,7 +164,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# 日志配置
+# 日志配置（仅控制台，避免文件权限问题）
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -179,24 +179,19 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'formatter': 'verbose',
-        },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console'],
         'level': 'INFO',
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
         'courses': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
